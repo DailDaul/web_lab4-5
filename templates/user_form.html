@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if user %}Редактирование пользователя{% else %}Создание пользователя{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header {% if user %}bg-warning{% else %}bg-success{% endif %} text-white">
+                <h4 class="mb-0">
+                    {% if user %}
+                    <i class="bi bi-pencil-square"></i> Редактирование пользователя
+                    {% else %}
+                    <i class="bi bi-person-plus"></i> Создание нового пользователя
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" 
+                      {% if user %}
+                      action="{{ url_for('user_edit', user_id=user.id) }}"
+                      {% else %}
+                      action="{{ url_for('user_create') }}"
+                      {% endif %}>
+                    
+                    {% if not user %}
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Логин <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               class="form-control {% if errors and errors.get('username') %}is-invalid{% endif %}" 
+                               id="username" 
+                               name="username" 
+                               value="{{ form_data.username if form_data else '' }}"
+                               required>
+                        {% if errors and errors.get('username') %}
+                        <div class="invalid-feedback">
+                            {{ errors.get('username') }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Только латинские буквы и цифры, минимум 5 символов</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">Фамилия</label>
+                        <input type="text" 
+                               class="form-control {% if errors and errors.get('last_name') %}is-invalid{% endif %}" 
+                               id="last_name" 
+                               name="last_name" 
+                               value="{% if user %}{{ user.last_name or '' }}{% elif form_data %}{{ form_data.last_name or '' }}{% endif %}">
+                        {% if errors and errors.get('last_name') %}
+                        <div class="invalid-feedback">
+                            {{ errors.get('last_name') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">Имя <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               class="form-control {% if errors and errors.get('first_name') %}is-invalid{% endif %}" 
+                               id="first_name" 
+                               name="first_name" 
+                               value="{% if user %}{{ user.first_name or '' }}{% elif form_data %}{{ form_data.first_name or '' }}{% endif %}"
+                               required>
+                        {% if errors and errors.get('first_name') %}
+                        <div class="invalid-feedback">
+                            {{ errors.get('first_name') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="middle_name" class="form-label">Отчество</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="middle_name" 
+                               name="middle_name" 
+                               value="{% if user %}{{ user.middle_name or '' }}{% elif form_data %}{{ form_data.middle_name or '' }}{% endif %}">
+                    </div>
+                    
+                    {% if not user %}
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Пароль <span class="text-danger">*</span></label>
+                        <input type="password" 
+                               class="form-control {% if errors and errors.get('password') %}is-invalid{% endif %}" 
+                               id="password" 
+                               name="password" 
+                               required>
+                        {% if errors and errors.get('password') %}
+                        <div class="invalid-feedback">
+                            {{ errors.get('password') }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <small>
+                                Пароль должен содержать:<br>
+                                - минимум 8 символов<br>
+                                - заглавные и строчные буквы<br>
+                                - минимум одну цифру<br>
+                                - допустимые спецсимволы: ~ ! ? @ # $ % ^ & * _ - + ( ) [ ] { } > < / \ | " ' . , : ;
+                            </small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="role_id" class="form-label">Роль</label>
+                        <select class="form-select" id="role_id" name="role_id" 
+                                {% if user and not current_user.has_role('admin') %}disabled{% endif %}>
+                            <option value="">-- Без роли --</option>
+                            {% for role in roles %}
+                            <option value="{{ role.id }}" 
+                                {% if user and user.role_id == role.id %}selected{% endif %}
+                                {% if form_data and form_data.role_id|string == role.id|string %}selected{% endif %}>
+                                {{ role.name }} - {{ role.description }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if user and not current_user.has_role('admin') %}
+                        <div class="form-text text-muted">Только администратор может изменять роль пользователя</div>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            {% if user %}Сохранить{% else %}Создать{% endif %}
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+                    </div>
+                </form>
+            </div>
+            
+            {% if user %}
+            <div class="card-footer text-muted">
+                <small>Дата создания: {{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
